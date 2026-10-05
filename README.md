@@ -350,3 +350,6 @@ O `train` recriou o `model/btc_model.joblib`, saiu com 0, a API subiu `healthy`,
 6. **App cliente:** `docker compose --profile client run --rm client`
 7. **Só re-treinar** (com a API no ar): `docker compose run --rm train && docker compose restart api` (a API só lê o modelo no startup, por isso o restart)
 8. **Desligar:** `docker compose down`
+
+
+Detahe: utilizei ia para fazer a primeira versão do README.md, mas depois revisei e editei manualmente para garantir que todas as informações estivessem corretas e completas.
