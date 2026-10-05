@@ -1,0 +1,54 @@
+# Teste de reprodução do zero: derruba tudo, apaga o artefato e sobe de novo
+$ docker compose down
+ Network atividade-ponderada-m7-2026-ec_default Removed 
+$ rm -rf model/ && ls model
+ls: cannot access 'model': No such file or directory
+
+$ docker compose up -d --build
+ Container atividade-ponderada-m7-2026-ec-train-1 Starting 
+ Container atividade-ponderada-m7-2026-ec-train-1 Started 
+ Container atividade-ponderada-m7-2026-ec-train-1 Waiting 
+ Container atividade-ponderada-m7-2026-ec-train-1 Exited 
+ Container atividade-ponderada-m7-2026-ec-api-1 Starting 
+ Container atividade-ponderada-m7-2026-ec-api-1 Started 
+
+$ docker compose ps -a
+NAME                                     IMAGE                                  COMMAND                  SERVICE   CREATED          STATUS                     PORTS
+atividade-ponderada-m7-2026-ec-api-1     atividade-ponderada-m7-2026-ec-api     "uvicorn app:app --h…"   api       27 seconds ago   Up 9 seconds (healthy)     0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+atividade-ponderada-m7-2026-ec-train-1   atividade-ponderada-m7-2026-ec-train   "python train.py"        train     28 seconds ago   Exited (0) 9 seconds ago   
+
+$ ls -la model/
+total 524
+drwxrwxrwx 1 roque roque   4096 Oct  5 14:44 .
+drwxrwxrwx 1 roque roque   4096 Oct  5 14:44 ..
+-rwxrwxrwx 1 roque roque 535334 Oct  5 14:44 btc_model.joblib
+-rwxrwxrwx 1 roque roque    241 Oct  5 14:44 metrics.json
+
+$ docker compose logs train api | grep -v GET
+train-1  | [dados] 4295 dias | 2015-01-01 -> 2026-10-04
+train-1  | [dados] 4281 amostras | treino=3424 teste=857 (split cronológico)
+train-1  | [avaliação] {
+train-1  |   "test_period": [
+train-1  |     "2024-05-31",
+train-1  |     "2026-10-04"
+train-1  |   ],
+train-1  |   "n_train": 3424,
+train-1  |   "n_test": 857,
+train-1  |   "model_mae_usd": 1394.02,
+train-1  |   "model_mape_pct": 1.678,
+train-1  |   "naive_mae_usd": 1380.9,
+train-1  |   "naive_mape_pct": 1.663,
+train-1  |   "direction_accuracy_pct": 48.19
+train-1  | }
+train-1  | [artefato] salvo em /app/model/btc_model.joblib (523 KB)
+api-1    | INFO:     Started server process [1]
+api-1    | INFO:     Waiting for application startup.
+api-1    | [api] modelo carregado de /app/model/btc_model.joblib (treinado em 2026-10-05T17:44:34+00:00)
+api-1    | INFO:     Application startup complete.
+api-1    | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+
+$ curl -s -o /dev/null -w "%{http_code} -> %{redirect_url}" http://localhost:8000/
+307 -> http://localhost:8000/docs
+
+$ curl -s http://localhost:8000/predict/latest
+{"last_close":86480.3,"last_date":"2026-10-04","horizon":1,"predictions":[{"predicted_log_return":0.001921,"predicted_close":86646.59,"date":"2026-10-05"}]}

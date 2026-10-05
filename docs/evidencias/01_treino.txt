@@ -1,0 +1,25 @@
+$ docker compose run --rm train
+[dados] 4295 dias | 2015-01-01 -> 2026-10-04
+[dados] 4281 amostras | treino=3424 teste=857 (split cronológico)
+[avaliação] {
+  "test_period": [
+    "2024-05-31",
+    "2026-10-04"
+  ],
+  "n_train": 3424,
+  "n_test": 857,
+  "model_mae_usd": 1394.02,
+  "model_mape_pct": 1.678,
+  "naive_mae_usd": 1380.9,
+  "naive_mape_pct": 1.663,
+  "direction_accuracy_pct": 48.19
+}
+[artefato] salvo em /app/model/btc_model.joblib (523 KB)
+exit code: 0
+
+$ ls -la model/
+total 524
+drwxrwxrwx 1 roque roque   4096 Oct  5 14:37 .
+drwxrwxrwx 1 roque roque   4096 Oct  5 14:37 ..
+-rwxrwxrwx 1 roque roque 535334 Oct  5 14:38 btc_model.joblib
+-rwxrwxrwx 1 roque roque    241 Oct  5 14:38 metrics.json

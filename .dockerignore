@@ -1,0 +1,6 @@
+.git
+data
+model
+docs
+**/__pycache__
+*.md

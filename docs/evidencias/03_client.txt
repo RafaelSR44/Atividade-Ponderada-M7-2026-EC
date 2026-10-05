@@ -1,0 +1,18 @@
+$ docker compose --profile client run --rm client
+[client] GET /health -> {'status': 'ok', 'model_loaded': True}
+[client] enviando 14 fechamentos (2026-09-21 -> 2026-10-04), horizon=3
+[client] POST /predict -> HTTP 200
+[client] último fechamento real: US$ 86,480.30 (2026-10-04)
+[client]   D+1: US$ 86,646.59  (+0.19% vs último)
+[client]   D+2: US$ 86,824.92  (+0.40% vs último)
+[client]   D+3: US$ 86,938.86  (+0.53% vs último)
+
+$ docker compose logs api (trecho)
+api-1  | INFO:     172.20.0.1:53990 - "GET /predict/latest?horizon=3 HTTP/1.1" 200 OK
+api-1  | INFO:     172.20.0.1:53998 - "POST /predict HTTP/1.1" 200 OK
+api-1  | INFO:     172.20.0.1:54000 - "POST /predict HTTP/1.1" 422 Unprocessable Entity
+api-1  | INFO:     172.20.0.1:54010 - "POST /predict HTTP/1.1" 400 Bad Request
+api-1  | INFO:     172.20.0.1:54014 - "GET /predict/latest?horizon=30 HTTP/1.1" 422 Unprocessable Entity
+api-1  | INFO:     172.20.0.1:57352 - "GET / HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.20.0.3:55378 - "POST /predict HTTP/1.1" 200 OK
+api-1  | INFO:     172.20.0.1:57352 - "GET /favicon.ico HTTP/1.1" 404 Not Found

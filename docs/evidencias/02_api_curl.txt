@@ -1,0 +1,33 @@
+$ docker compose ps -a
+NAME                                     IMAGE                                  COMMAND                  SERVICE   CREATED              STATUS                      PORTS
+atividade-ponderada-m7-2026-ec-api-1     atividade-ponderada-m7-2026-ec-api     "uvicorn app:app --h…"   api       58 seconds ago       Up 39 seconds (healthy)     0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+atividade-ponderada-m7-2026-ec-train-1   atividade-ponderada-m7-2026-ec-train   "python train.py"        train     About a minute ago   Exited (0) 41 seconds ago   
+
+
+$ curl -s http://localhost:8000/health
+{"status":"ok","model_loaded":true}
+
+$ curl -s http://localhost:8000/model/info
+{"window":14,"feature_names":["ret_lag_1","ret_lag_2","ret_lag_3","ret_lag_4","ret_lag_5","ret_lag_6","ret_lag_7","close_over_ma7","close_over_ma14","vol_7d"],"target":"log(close[t+1] / close[t])","trained_at":"2026-10-05T17:41:27+00:00","data_last_date":"2026-10-04","sklearn_version":"1.5.2","metrics":{"test_period":["2024-05-31","2026-10-04"],"n_train":3424,"n_test":857,"model_mae_usd":1394.02,"model_mape_pct":1.678,"naive_mae_usd":1380.9,"naive_mape_pct":1.663,"direction_accuracy_pct":48.19}}
+
+$ curl -s "http://localhost:8000/predict/latest?horizon=3"
+{"last_close":86480.3,"last_date":"2026-10-04","horizon":3,"predictions":[{"predicted_log_return":0.001921,"predicted_close":86646.59,"date":"2026-10-05"},{"predicted_log_return":0.002056,"predicted_close":86824.92,"date":"2026-10-06"},{"predicted_log_return":0.001312,"predicted_close":86938.86,"date":"2026-10-07"}]}
+
+$ curl -s -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d "{\"closes\": [86602.91,86172.28,84383.01,84379.06,84034.92,84406.45,84458.09,83502.61,83622.43,83553.85,84853.1,84497.21,84763.58,86480.3], \"horizon\": 1}"
+{"last_close":86480.3,"last_date":null,"horizon":1,"predictions":[{"predicted_log_return":0.001921,"predicted_close":86646.59}]}
+
+# teste de erro: só 3 fechamentos (precisa de 14)
+$ curl -s -w "\nHTTP %{http_code}" -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d "{\"closes\": [1,2,3]}"
+{"detail":[{"type":"too_short","loc":["body","closes"],"msg":"List should have at least 14 items after validation, not 3","input":[1,2,3],"ctx":{"field_type":"List","min_length":14,"actual_length":3}}]}
+HTTP 422
+
+# teste de erro: preço negativo
+$ curl -s -w "\nHTTP %{http_code}" -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d "{\"closes\": [-1,2,3,4,5,6,7,8,9,10,11,12,13,14]}"
+{"detail":"fechamentos precisam ser positivos"}
+HTTP 400
+
+# teste de erro: horizon fora do limite
+$ curl -s -w "\nHTTP %{http_code}" "http://localhost:8000/predict/latest?horizon=30"
+{"detail":[{"type":"less_than_equal","loc":["query","horizon"],"msg":"Input should be less than or equal to 7","input":"30","ctx":{"le":7}}]}
+HTTP 422
+

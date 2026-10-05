@@ -1,0 +1,13 @@
+{
+  "test_period": [
+    "2024-05-31",
+    "2026-10-04"
+  ],
+  "n_train": 3424,
+  "n_test": 857,
+  "model_mae_usd": 1394.02,
+  "model_mape_pct": 1.678,
+  "naive_mae_usd": 1380.9,
+  "naive_mape_pct": 1.663,
+  "direction_accuracy_pct": 48.19
+}

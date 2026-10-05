@@ -1,0 +1,39 @@
+services:
+  # 1) Treina e grava o artefato em ./model (volume compartilhado com a API)
+  train:
+    build:
+      context: .
+      dockerfile: training/Dockerfile
+    volumes:
+      - ./data:/app/data:ro
+      - ./model:/app/model
+
+  # 2) Backend de inferência: só sobe depois do treino terminar com sucesso
+  api:
+    build:
+      context: .
+      dockerfile: inference/Dockerfile
+    depends_on:
+      train:
+        condition: service_completed_successfully
+    volumes:
+      - ./model:/app/model:ro
+      - ./data:/app/data:ro
+    ports:
+      - "8000:8000"
+
+  # 3) Aplicação cliente (opcional): docker compose --profile client run --rm client
+  client:
+    profiles: ["client"]
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      API_URL: http://api:8000
+      DATA_PATH: /app/data/btc_usd_daily.csv
+      HORIZON: "3"
+    volumes:
+      - ./data:/app/data:ro
